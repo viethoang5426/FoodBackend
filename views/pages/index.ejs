@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Email</title>
+</head>
+<body>
+    <h1>Send Email</h1>
+    <form id="emailForm">
+        <label for="to">To:</label>
+        <input type="email" id="to" name="to" value="@gmail.com" ><br><br>
+
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject" name="subject" value="đây là tiêu đề test"><br><br>
+
+        <label for="text">Text:</label>
+        <textarea id="text" name="text" value="đây là nội dung test"></textarea><br><br>
+
+        <!-- <button type="submit">Send Email</button> -->
+        <input type="submit" placeholder="Send Email">
+    </form>
+
+    <script>
+        document.getElementById('emailForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const to = document.getElementById('to').value;
+            const subject = document.getElementById('subject').value;
+            const text = document.getElementById('text').value;
+
+            fetch('/api/u/senmail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ to, subject, text })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
