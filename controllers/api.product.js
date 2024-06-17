@@ -204,9 +204,9 @@ exports.getByPrice = async (req, res, next) => {
 exports.create = async (req, res, next) => {
     objReturn.data = null;
 
-    const { CategoryID, Description, Price, ProductName, StockQuantity } = req.body;
+    const { CategoryID, Description, Price, ProductName, StockQuantity,Brand } = req.body;
     try {
-        if (!CategoryID || !Description || !Price || !ProductName || !StockQuantity) {
+        if (!CategoryID || !Description || !Price || !ProductName || !StockQuantity || !Brand) {
             objReturn.status = 0;
             objReturn.msg = 'hãy nhập đủ';
             return res.status(400).json(objReturn);
@@ -216,11 +216,14 @@ exports.create = async (req, res, next) => {
             CategoryID,
             Description,
             Price,
+            Brand,
             ProductName,
             Image: req.file.path,
             StockQuantity
         });
-
+        if (req.file && req.file.path) {
+            product.Image = req.file.path;
+        }
 
 
         const savedProduct = await product.save();
@@ -241,7 +244,7 @@ exports.updateById = async (req, res, next) => {
     objReturn.data = null;
 
     const { productId } = req.params;
-    const { CategoryID, Description, Price, ProductName, StockQuantity } = req.body;
+    const { CategoryID, Description, Price, ProductName, StockQuantity,Brand } = req.body;
 
     try {
         const updatedProduct = await mProduct.productModel.findByIdAndUpdate(
@@ -250,6 +253,7 @@ exports.updateById = async (req, res, next) => {
                 CategoryID,
                 Description,
                 Price,
+                Brand,
                 ProductName,
                 StockQuantity
             },
