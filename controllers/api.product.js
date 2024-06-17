@@ -175,7 +175,7 @@ exports.getByPrice = async (req, res, next) => {
             return res.json(objReturn);
         }
 
-        
+
         const results = await mProduct.productModel.find({ Price: { $gte: minDiem, $lte: maxDiem } });
         if (results.length > 0) {
             objReturn.msg = 'Tìm thấy các kết quả phù hợp';
@@ -212,7 +212,14 @@ exports.create = async (req, res, next) => {
             return res.status(400).json(objReturn);
 
         }
-        const product = new mProduct.productModel({ CategoryID, Description, Price, ProductName, StockQuantity });
+        const product = new mProduct.productModel({
+            CategoryID,
+            Description,
+            Price,
+            ProductName,
+            Image: req.file.path,
+            StockQuantity
+        });
 
 
 
@@ -227,25 +234,38 @@ exports.create = async (req, res, next) => {
         objReturn.msg = error.message;
         return res.status(500).json(objReturn);
     }
-    res.status(400).json(objReturn);
+    res.status(200).json(objReturn);
 
 };
 exports.updateById = async (req, res, next) => {
+    objReturn.data = null;
+
     const { productId } = req.params;
     const { CategoryID, Description, Price, ProductName, StockQuantity } = req.body;
 
     try {
         const updatedProduct = await mProduct.productModel.findByIdAndUpdate(
             productId,
-            { CategoryID, Description, Price, ProductName, StockQuantity },
+            {
+                CategoryID,
+                Description,
+                Price,
+                ProductName,
+                StockQuantity
+            },
             { new: true }
         );
 
+        if (req.file && req.file.path) {
+            updatedProduct.Image = req.file.path;
+        }
         if (!updatedProduct) {
             objReturn.status = 0;
             objReturn.msg = 'Product not found';
             return res.status(404).json(objReturn);
         }
+
+        await updatedProduct.save();
 
         objReturn.msg = 'Update successful';
         objReturn.data = updatedProduct;

@@ -6,6 +6,7 @@ var productSchema = new db.mongoose.Schema(
         Description: { type: String },
         Price: { type: Number, required: true },
         Brand: { type: String },
+        Image: { type: String, required: false},
         StockQuantity: { type: Number, required: true }
     },
     { collection: 'products' }

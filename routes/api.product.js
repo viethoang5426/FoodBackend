@@ -1,13 +1,32 @@
 const express = require('express');
 const router = express.Router();
 
+require('dotenv').config();
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'uploads', // Thư mục trên Cloudinary nơi ảnh sẽ được lưu trữ
+        allowed_formats: ['jpg', 'png'],
+    },
+});
+
+const upload = multer({ storage: storage });
 
 
 const api_product = require('../controllers/api.product');
 
 
 
-router.post('/create', api_product.create);
+router.post('/create', upload.single('Image'), api_product.create);
 
 
 router.get('/getAll', api_product.getAll);
@@ -19,7 +38,7 @@ router.get('/search/brand/', api_product.getAll);
 router.get('/:productId', api_product.getById);
 router.get('/category/:categoryId', api_product.getByIdCategory);
 
-router.put('/updateProduct/:productId', api_product.updateById);
+router.put('/updateProduct/:productId', upload.single('Image'), api_product.updateById);
 router.delete('/deleteProduct/:productId', api_product.deleteById);
 
 
