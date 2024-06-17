@@ -18,6 +18,7 @@ router.put('/updateUser/:userId', api_user.updateById);
 router.post('/changePassword/:userId', api_user.changePassword);
 
 
+router.delete('/del/:userId', api_user.delById);
 
 router.post('/senmail', api_user.sendMail);
 

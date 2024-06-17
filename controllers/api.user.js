@@ -237,3 +237,25 @@ exports.userLogin = async (req, res, next) => {
     }
     res.json(objReturn);
 }
+
+exports.delById = async (req, res, next) => {
+    const userId = req.params.userId;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        objReturn.status = 0;
+        objReturn.msg = 'userId không hợp lệ';
+        return res.status(400).json(objReturn);
+    }
+    try {
+
+        const user = await mdU.userModel.findByIdAndDelete(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'Người dùng không tồn tại' });
+        }
+
+        return res.status(200).json({ message: 'Xóa người dùng thành công' });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};

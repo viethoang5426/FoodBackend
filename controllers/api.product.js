@@ -199,3 +199,86 @@ exports.getByPrice = async (req, res, next) => {
 
     res.status(200).json(objReturn);
 }
+
+
+exports.create = async (req, res, next) => {
+    objReturn.data = null;
+
+    const { CategoryID, Description, Price, ProductName, StockQuantity } = req.body;
+    try {
+        if (!CategoryID || !Description || !Price || !ProductName || !StockQuantity) {
+            objReturn.status = 0;
+            objReturn.msg = 'hãy nhập đủ';
+            return res.status(400).json(objReturn);
+
+        }
+        const product = new mProduct.productModel({ CategoryID, Description, Price, ProductName, StockQuantity });
+
+
+
+        const savedProduct = await product.save();
+        objReturn.msg = 'tạo thành công';
+        objReturn.data = savedProduct;
+
+
+
+    } catch (error) {
+        objReturn.status = 0;
+        objReturn.msg = error.message;
+        return res.status(500).json(objReturn);
+    }
+    res.status(400).json(objReturn);
+
+};
+exports.updateById = async (req, res, next) => {
+    const { productId } = req.params;
+    const { CategoryID, Description, Price, ProductName, StockQuantity } = req.body;
+
+    try {
+        const updatedProduct = await mProduct.productModel.findByIdAndUpdate(
+            productId,
+            { CategoryID, Description, Price, ProductName, StockQuantity },
+            { new: true }
+        );
+
+        if (!updatedProduct) {
+            objReturn.status = 0;
+            objReturn.msg = 'Product not found';
+            return res.status(404).json(objReturn);
+        }
+
+        objReturn.msg = 'Update successful';
+        objReturn.data = updatedProduct;
+
+    } catch (error) {
+        objReturn.status = 0;
+        objReturn.msg = error.message;
+        return res.status(500).json(objReturn);
+    }
+
+    res.json(objReturn);
+};
+
+exports.deleteById = async (req, res, next) => {
+    const { productId } = req.params;
+
+    try {
+        const deletedProduct = await mProduct.productModel.findByIdAndDelete(productId);
+
+        if (!deletedProduct) {
+            objReturn.status = 0;
+            objReturn.msg = 'Product not found';
+            return res.status(404).json(objReturn);
+        }
+
+        objReturn.msg = 'Delete successful';
+        objReturn.data = deletedProduct;
+
+    } catch (error) {
+        objReturn.status = 0;
+        objReturn.msg = error.message;
+        return res.status(500).json(objReturn);
+    }
+
+    res.json(objReturn);
+};

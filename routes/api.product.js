@@ -7,6 +7,7 @@ const api_product = require('../controllers/api.product');
 
 
 
+router.post('/create', api_product.create);
 
 
 router.get('/getAll', api_product.getAll);
@@ -18,6 +19,8 @@ router.get('/search/brand/', api_product.getAll);
 router.get('/:productId', api_product.getById);
 router.get('/category/:categoryId', api_product.getByIdCategory);
 
+router.put('/updateProduct/:productId', api_product.updateById);
+router.delete('/deleteProduct/:productId', api_product.deleteById);
 
 
 
