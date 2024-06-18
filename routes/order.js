@@ -12,9 +12,5 @@ router.get('/vnpay_return', api_order.vnpay_return)
 
 
 
-// MOMO
-router.post('/create_payment_url_momo', api_order.create_payment_url_momo)
-router.post('/momo_return', api_order.momo_return)
-
 
 module.exports = router;

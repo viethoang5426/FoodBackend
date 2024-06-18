@@ -9,7 +9,6 @@ const mongoose = require('mongoose');
 const axios = require('axios');
 let mdOrder = require('../models/order.model')
 let mdOrderDetail = require('../models/orderDetail.model')
-const configMomo = require('../config/momo');
 let mdPaymentMethod = require('../models/paymentMethod.model')
 let mdProduct = require('../models/product.model')
 let mdCart = require('../models/cart.model')
@@ -524,260 +523,109 @@ const getByIdUser = async (req, res, next) => {
 
     res.json(objReturn);
 }
+const getAllOrder = async (req, res, next) => {
 
 
-
-const create_payment_url_momo = async (req, res, next) => {
-    let { accessKey, secretKey, orderInfo, partnerCode, redirectUrl, ipnUrl, requestType, extraData, orderGroupId, autoCapture, lang,
-    } = configMomo;
-
-
-    let userID = req.body.userID;
-    let cartID = req.body.cartID;
-    let PaymentMethodID = req.body.PaymentMethodID;
-    let amount = 0;
-
-
-    try {
-        if (!mongoose.Types.ObjectId.isValid(userID) || !mongoose.Types.ObjectId.isValid(PaymentMethodID)) {
-            return res.status(400).json({ status: 0, msg: 'iduser hoặc PaymentMethodID không hợp lệ' });
-
-        }
-
-        // const finUser = await mdUser.userModel.findById(userID);
-        // const finPaymentMethod = await mdPaymentMethod.paymentMethodModel.findById(PaymentMethodID);
-        const [finUser, finPaymentMethod] = await Promise.all([
-            await mdUser.userModel.findById(userID),
-            await mdPaymentMethod.paymentMethodModel.findById(PaymentMethodID)
-        ])
-
-        if (finPaymentMethod.MethodName != 'VNPAY') {
-            return res.status(400).json({ status: 0, msg: 'truyền đúng paymentmethod id có name VNPAY' });
-        }
-
-
-
-
-        if (!cartID || !Array.isArray(cartID) || !finUser) {
-            return res.status(400).json({ status: 0, msg: 'Dữ liệu giỏ hàng hoặc user không hợp lệ' });
-        }
-
-
-        for (const itemCart of cartID) {
-            if (!mongoose.Types.ObjectId.isValid(itemCart)) {
-                return res.status(400).json({ status: 0, msg: 'idcart không hợp lệ' });
-            }
-
-
-            const fincart = await mdCart.cartModel.findById(itemCart);
-
-
-            if (!fincart) {
-                return res.status(400).json({ message: 'Không tìm thấy sản phẩm trong giỏ hàng ' });
-            }
-            const findProduct = await mdProduct.productModel.findById(fincart.ProductID);
-            if (findProduct.StockQuantity <= 0 && itemCart.Quantity > findProduct.StockQuantity) {
-
-                return res.status(400).json({ message: 'số lượng sản phẩm đã hết hoặc không đủ' });
-            }
-
-            amount += findProduct.Price;
-
-        }
-    } catch (error) {
-        return res.status(404).json({ status: 0, error: "Đã xảy ra lỗi " + error.message });
-    }
-
-
-
-    globalCartID = cartID;
-    globalAmount = amount;
-    globalUserID = userID;
-    globalPaymenthemodID = PaymentMethodID;
-
-
-
-    // var amount = '10000';
-    var orderId = partnerCode + new Date().getTime();
-    var requestId = orderId;
-
-    var rawSignature = 'accessKey=' + accessKey + '&amount=' + amount + '&extraData=' + extraData + '&ipnUrl=' + ipnUrl + '&orderId=' + orderId + '&orderInfo=' + orderInfo + '&partnerCode=' + partnerCode + '&redirectUrl=' + redirectUrl + '&requestId=' + requestId + '&requestType=' + requestType;
-
-    var signature = crypto
-        .createHmac('sha256', secretKey)
-        .update(rawSignature)
-        .digest('hex');
-
-    const requestBody = JSON.stringify({
-        partnerCode: partnerCode, partnerName: 'Test', storeId: 'MomoTestStore', requestId: requestId, amount: amount, orderId: orderId, orderInfo: orderInfo, redirectUrl: redirectUrl, ipnUrl: ipnUrl, lang: lang, requestType: requestType, autoCapture: autoCapture, extraData: extraData, orderGroupId: orderGroupId, signature: signature,
-    });
-
-    const options = {
-        method: 'POST',
-        url: 'https://test-payment.momo.vn/v2/gateway/api/create',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(requestBody),
-        },
-        data: requestBody,
-    };
-
-    let result;
-    try {
-        result = await axios(options);
-        return res.status(200).json(result.data);
-    } catch (error) {
-        return res.status(500).json({ statusCode: 500, message: error.message });
-    }
-};
-
-
-
-const momo_return = async (req, res, next) => {
-    /**
-      resultCode = 0: giao dịch thành công.
-      resultCode = 9000: giao dịch được cấp quyền (authorization) thành công .
-      resultCode <> 0: giao dịch thất bại.
-     */
-    console.log('callback: ');
-    console.log(req.body);
-    /**
-     * Dựa vào kết quả này để update trạng thái đơn hàng
-     * 
-     * 
-     * Kết quả log:
-     * {
-          partnerCode: 'MOMO',
-          orderId: 'MOMO1712108682648',
-          requestId: 'MOMO1712108682648',
-          amount: 10000,
-          orderInfo: 'pay with MoMo',
-          orderType: 'momo_wallet',
-          transId: 4014083433,
-          resultCode: 0,
-          message: 'Thành công.',
-          payType: 'qr',
-          responseTime: 1712108811069,
-          extraData: '',
-          signature: '10398fbe70cd3052f443da99f7c4befbf49ab0d0c6cd7dc14efffd6e09a526c0'
-        }
-     */
+    objReturn.data = null;
 
     try {
 
-        const userID = globalUserID;
-        const cartID = globalCartID;
-        const amount = globalAmount;
 
+        const order = await mdOrder.orderModel.find().sort({ _id: -1 })
+            .populate('PaymentMethodID');
 
-        for (const iterator of cartID) {
-            const finCart = await mdCart.cartModel.findById(iterator);
-            const findProduct = await mdProduct.productModel.findById(finCart.ProductID);
-
-            const quantityCart = finCart.Quantity;
-            const quantityProduct = findProduct.StockQuantity;
-
-            if (quantityCart > quantityProduct) {
-                res.render('order/success', { code: 'Không thể thực hiện ,do số lượng sản phẩm nào đó không đủ hoặc đã hết' })
-            } else {
-            }
-
+        if (!order) {
+            objReturn.status = 0;
+            objReturn.msg = 'Không tìm thấy';
+            return res.status(404).json(objReturn);
+        } else {
+            objReturn.status = 1;
+            objReturn.msg = 'tìm thành công';
+            objReturn.data = order;
         }
-
-
-
-
-        let data_cart = [];
-        for (const iterator of cartID) {
-            const finCart = await mdCart.cartModel.findById(iterator)
-                .populate('UserID', 'Email FullName PhoneNumber')
-                .populate({
-                    path: 'ProductID',
-                    populate: { path: 'CategoryID' }
-                })
-
-            const cartObject = {
-                _id: finCart._id,
-                UserID: {
-                    _id: finCart.UserID._id,
-                    FullName: finCart.UserID.FullName,
-                    Email: finCart.UserID.Email,
-                    PhoneNumber: finCart.UserID.PhoneNumber
-                },
-                ProductID: {
-                    _id: finCart.ProductID._id,
-                    CategoryID: {
-                        _id: finCart.ProductID.CategoryID._id,
-                        CategoryName: finCart.ProductID.CategoryID.CategoryName
-                    },
-                    Brand: finCart.ProductID.Brand,
-                    Description: finCart.ProductID.Description,
-                    Price: finCart.ProductID.Price,
-                    ProductName: finCart.ProductID.ProductName,
-                    StockQuantity: finCart.ProductID.StockQuantity
-                },
-                Quantity: finCart.Quantity,
-                __v: finCart.__v
-            };
-
-            data_cart.push(cartObject)
-
-
-        }
-
-        var date = moment(Date.now()).utc().toDate();
-
-        const newOrderData = {
-            UserID: userID,
-            CartID: cartID,
-            PaymentMethodID: globalPaymenthemodID,
-            TotalAmount: amount,
-            Status: 1,
-            OrderDate: date
-        };
-
-
-
-        const newORDER = new mdOrder.orderModel(newOrderData);
-        newORDER.save()
-
-        const newOrderDetailData = {
-            OrderID: newORDER._id,
-            Quantity: cartID.length,
-            DetailCartData: data_cart,
-            UnitPrice: amount / cartID.length
-        };
-        const newORDERDETAIL = new mdOrderDetail.orderDetailModel(newOrderDetailData);
-        newORDERDETAIL.save()
-
-        for (const iterator of cartID) {
-            const finCart = await mdCart.cartModel.findById(iterator);
-            const findProduct = await mdProduct.productModel.findById(finCart.ProductID);
-
-            let quantityCart = finCart.Quantity;
-            let quantityProduct = findProduct.StockQuantity;
-
-            try {
-                quantityProduct -= quantityCart
-                await mdProduct.productModel.findByIdAndUpdate(finCart.ProductID, { StockQuantity: quantityProduct }, { new: true });
-                await mdCart.cartModel.findByIdAndDelete(iterator);
-
-
-            } catch (error) {
-                return res.status(404).json({ error: "Đã xảy ra lỗi " + error.message });
-            }
-
-        }
-
     } catch (error) {
-        return res.status(404).json({ error: "Đã xảy ra lỗi 1 " + error.message });
+        objReturn.status = 0;
+        objReturn.msg = error.message;
+        return res.status(500).json(objReturn);
+
     }
 
-    return res.status(204).json(req.body);
-};
+    res.json(objReturn);
+}
+// TODO: Implement putOrderStatus to update the status of an order
+const putOrderStatus = async (req, res, next) => {
+    const orderId = req.params.orderID;
+    const Status = req.body.Status;
+
+
+
+    if (!Status || Status < 1 || Status > 2) {
+        objReturn.status = 0;
+        objReturn.msg = 'status không hợp lệ hoặc phải nhỏ hơn 1 và lớn hơn 3';
+        return res.status(404).json(objReturn);
+    }
+    if (!mongoose.Types.ObjectId.isValid(orderId) || !orderId) {
+        objReturn.status = 0;
+        objReturn.msg = 'orderId không hợp lệ';
+        return res.status(400).json(objReturn);
+    }
+
+    try {
+        const order = await mdOrder.orderModel.findByIdAndUpdate(orderId, { Status }, { new: true });
+
+        if (!order) {
+            objReturn.status = 0;
+            objReturn.msg = 'Order not found';
+            return res.status(404).json(objReturn);
+        }
+
+        objReturn.status = 1;
+        objReturn.msg = 'Order status updated successfully';
+        objReturn.data = order;
+
+    } catch (error) {
+        objReturn.status = 0;
+        objReturn.msg = error.message;
+        return res.status(500).json(objReturn);
+    }
+
+    res.json(objReturn);
+}
+const delOrderById = async (req, res, next) => {
+    const orderId = req.params.orderID;
+
+    if (!mongoose.Types.ObjectId.isValid(orderId) || !orderId) {
+        objReturn.status = 0;
+        objReturn.msg = 'orderId không hợp lệ';
+        return res.status(400).json(objReturn);
+    }
+
+    try {
+        const order = await mdOrder.orderModel.findByIdAndDelete(orderId);
+
+        if (!order) {
+            objReturn.status = 0;
+            objReturn.msg = 'Order not found';
+            return res.status(404).json(objReturn);
+        }
+
+        objReturn.status = 1;
+        objReturn.msg = 'Order deleted successfully';
+
+    } catch (error) {
+        objReturn.status = 0;
+        objReturn.msg = error.message;
+        return res.status(500).json(objReturn);
+    }
+
+    res.json(objReturn);
+}
 
 
 
 
 
-module.exports = { create_payment_url, vnpay_return, getByIdUser, create_payment_cod, create_payment_url_momo, momo_return }
+
+
+
+module.exports = { create_payment_url, vnpay_return, getByIdUser, create_payment_cod,getAllOrder,putOrderStatus,delOrderById }
