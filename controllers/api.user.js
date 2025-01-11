@@ -98,12 +98,11 @@ exports.addUser = async (req, res, next) => {
     objReturn.data = null;
 
     try {
-        const { FullName, Email, PhoneNumber, Password: userPassword } = req.body;
+        const { FullName, Email, PhoneNumber, Address, Password: userPassword } = req.body;
 
         const RegistrationDate = now;
         const existingUser = await mdU.userModel.findOne({ Email });
         if (existingUser) {
-
             objReturn.msg = 'Email đã tồn tại';
             objReturn.status = 0;
             return res.status(401).json(objReturn)
@@ -116,6 +115,7 @@ exports.addUser = async (req, res, next) => {
             Password: hashedPassword,
             PhoneNumber,
             Email,
+            Address,
             RegistrationDate
         });
 
@@ -205,6 +205,23 @@ exports.changePassword = async (req, res, next) => {
     }
 }
 
+
+exports.changePass = async (req, res, next) => {
+    try {
+        const { Email, newPassword } = req.body;
+        const user = await mdU.userModel.findOne({ Email: Email });
+        if (user) {
+          const hashNewPassword = await bcrypt.hash(newPassword, 10);
+          user.Password = hashNewPassword;
+          await user.save();
+          res.status(200).send("Đổi mật khẩu thành công");
+        }
+      } catch (error) {
+        res.status(500).send(error);
+      }
+}
+
+
 exports.userLogin = async (req, res, next) => {
     const { Email, Password } = req.body;
     objReturn.data = null;
@@ -221,7 +238,6 @@ exports.userLogin = async (req, res, next) => {
 
         // }
 
-
         // const token = await user.generateAuthToken()  // bỏ dòng này để có token
 
         objReturn.msg = "đăng nhập thành công 1";
@@ -230,6 +246,8 @@ exports.userLogin = async (req, res, next) => {
 
     } catch (error) {
         objReturn.status = 0;
+        console.log(error);
+
         objReturn.msg = error.message;
 
         return res.status(500).json(objReturn)
@@ -237,6 +255,31 @@ exports.userLogin = async (req, res, next) => {
     }
     res.json(objReturn);
 }
+
+
+//Forgot Password
+exports.forgotPass = async (req, res, next) => {
+    const { Email } = req.body;
+    objReturn.data = null;
+    try {
+        const user = await mdU.userModel.findOne({Email});
+
+        if (!user) {
+            return res.status(401).json({ message: 'Gmail không tồn tại !' })
+        }
+        objReturn.msg = "Tài khoản tồn tại ";
+        objReturn.data = ({ user });
+
+    } catch (error) {
+        objReturn.status = 0;
+        console.log(error);
+        objReturn.msg = error.message;
+        return res.status(500).json(objReturn)
+
+    }
+    res.json(objReturn);
+}
+
 
 exports.delById = async (req, res, next) => {
     const userId = req.params.userId;

@@ -14,6 +14,7 @@ const port = 3000;
 
 const apiRouter = require("./routes/api");
 const orderRouter = require("./routes/order");
+const otpMailRouter = require("./routes/api.otp");
 
 
 
@@ -36,6 +37,8 @@ app.use(
 
 app.use("/api", apiRouter);
 app.use("/api/order", orderRouter);
+app.use("/api/otp", otpMailRouter);
+
 
 app.get("/", (req, res) => {
   res.render("pages/index");

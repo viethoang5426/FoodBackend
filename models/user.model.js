@@ -9,6 +9,7 @@ var userSchema = new db.mongoose.Schema(
         FullName: { type: String, required: true },
         Email: { type: String, required: true, unique: true },
         PhoneNumber: { type: String, required: true },
+        Address: { type: String, required: true },
         Password: { type: String, required: true },
         token: { type: String, required: false },
         RegistrationDate: { type: Date, required: true }

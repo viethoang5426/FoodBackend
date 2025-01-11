@@ -246,7 +246,7 @@ const create_payment_cod = async (req, res, next) => {
         let data_cart = [];
         for (const iterator of cartID) {
             const finCart = await mdCart.cartModel.findById(iterator)
-                .populate('UserID', 'Email FullName PhoneNumber')
+                .populate('UserID', 'Email FullName PhoneNumber Address')
                 .populate({
                     path: 'ProductID',
                     populate: { path: 'CategoryID' }
@@ -258,7 +258,8 @@ const create_payment_cod = async (req, res, next) => {
                     _id: finCart.UserID._id,
                     FullName: finCart.UserID.FullName,
                     Email: finCart.UserID.Email,
-                    PhoneNumber: finCart.UserID.PhoneNumber
+                    PhoneNumber: finCart.UserID.PhoneNumber,
+                    Address: finCart.UserID.Address
                 },
                 ProductID: {
                     _id: finCart.ProductID._id,
@@ -270,7 +271,8 @@ const create_payment_cod = async (req, res, next) => {
                     Description: finCart.ProductID.Description,
                     Price: finCart.ProductID.Price,
                     ProductName: finCart.ProductID.ProductName,
-                    StockQuantity: finCart.ProductID.StockQuantity
+                    StockQuantity: finCart.ProductID.StockQuantity,
+                    Image: finCart.ProductID.Image
                 },
                 Quantity: finCart.Quantity,
                 __v: finCart.__v
@@ -391,7 +393,7 @@ const vnpay_return = async (req, res, next) => {
             let data_cart = [];
             for (const iterator of cartID) {
                 const finCart = await mdCart.cartModel.findById(iterator)
-                    .populate('UserID', 'Email FullName PhoneNumber')
+                    .populate('UserID', 'Email FullName PhoneNumber Address')
                     .populate({
                         path: 'ProductID',
                         populate: { path: 'CategoryID' }
@@ -403,7 +405,8 @@ const vnpay_return = async (req, res, next) => {
                         _id: finCart.UserID._id,
                         FullName: finCart.UserID.FullName,
                         Email: finCart.UserID.Email,
-                        PhoneNumber: finCart.UserID.PhoneNumber
+                        PhoneNumber: finCart.UserID.PhoneNumber,
+                        Address: finCart.UserID.Address
                     },
                     ProductID: {
                         _id: finCart.ProductID._id,
@@ -415,7 +418,8 @@ const vnpay_return = async (req, res, next) => {
                         Description: finCart.ProductID.Description,
                         Price: finCart.ProductID.Price,
                         ProductName: finCart.ProductID.ProductName,
-                        StockQuantity: finCart.ProductID.StockQuantity
+                        StockQuantity: finCart.ProductID.StockQuantity,
+                        Image: finCart.ProductID.Image
                     },
                     Quantity: finCart.Quantity,
                     __v: finCart.__v

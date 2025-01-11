@@ -16,7 +16,8 @@ router.post('/register', api_user.addUser);
 router.post('/login', api_user.userLogin);
 router.put('/updateUser/:userId', api_user.updateById);
 router.post('/changePassword/:userId', api_user.changePassword);
-
+router.post('/forgotPass', api_user.forgotPass);
+router.post('/changePass/', api_user.changePass);
 
 router.delete('/del/:userId', api_user.delById);
 
