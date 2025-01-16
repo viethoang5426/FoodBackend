@@ -16,10 +16,6 @@ const apiRouter = require("./routes/api");
 const orderRouter = require("./routes/order");
 const otpMailRouter = require("./routes/api.otp");
 
-
-
-
-
 app.use(express.json());
 app.set("view engine", "ejs");
 app.use(faviconMiddleware);
@@ -39,6 +35,27 @@ app.use("/api", apiRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/otp", otpMailRouter);
 
+app.get("/successOrder", (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        <div
+        style="text-align: center; font-size: 2em; font-family: 'Roboto', sans-serif; font-weight: 700; color: #009688; margin-top: 15vh;">
+        <img src="https://cdn-icons-png.flaticon.com/512/5161/5161320.png" alt=""
+            style="width: 60%; max-width: 300px; margin-bottom: 20px;">
+        <p style="margin-bottom: 10px; color: #009688;">Thanh Toán Sản Phẩm Thành Công !</p>
+        <p style="color: #009688; font-size: 1.2em;">Kiểm tra sản phẩm ở phần hóa đơn</p>
+    </div>
+    </body>
+    </html>
+    `);
+});
 
 app.get("/", (req, res) => {
   res.render("pages/index");
@@ -67,6 +84,10 @@ app.use(function (err, req, res, next) {
 app.listen(port, () => {
   console.log(`server runing port ${port} `);
 });
+
+// app.listen(port, '0.0.0.0', () => {
+//   console.log(`Server is running on http://0.0.0.0:${port}`);
+// });
 
 // console.log('Free memory:', os.freemem());
 // console.log('Percentage of free memory:', ((os.freemem() / os.totalmem()) * 100).toFixed(2) + '%');
