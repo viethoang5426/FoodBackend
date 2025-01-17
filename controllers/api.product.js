@@ -330,14 +330,11 @@ exports.updateRattingById = async (req, res, next) => {
             },
             { new: true }
         );
-
-
         if (!updatedProduct) {
             objReturn.status = 0;
             objReturn.msg = 'Product not found';
             return res.status(404).json(objReturn);
         }
-
         await updatedProduct.save();
 
         objReturn.msg = 'Update successful';

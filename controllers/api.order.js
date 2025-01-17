@@ -490,7 +490,7 @@ const vnpay_return = async (req, res, next) => {
 
     // })
 
-    res.redirect("http://192.168.1.10:3000/successOrder?mess=ok");
+    res.redirect("http://192.168.100.35:3000/successOrder?mess=ok");
   } else {
     return res.status(404).json({ error: "Đã xảy ra lỗi 2 " + error.message });
   }

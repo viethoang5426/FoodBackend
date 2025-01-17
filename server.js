@@ -50,7 +50,6 @@ app.get("/successOrder", (req, res) => {
         <img src="https://cdn-icons-png.flaticon.com/512/5161/5161320.png" alt=""
             style="width: 60%; max-width: 300px; margin-bottom: 20px;">
         <p style="margin-bottom: 10px; color: #009688;">Thanh Toán Sản Phẩm Thành Công !</p>
-        <p style="color: #009688; font-size: 1.2em;">Kiểm tra sản phẩm ở phần hóa đơn</p>
     </div>
     </body>
     </html>
