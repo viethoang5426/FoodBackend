@@ -221,19 +221,18 @@ exports.elasticSearch = async (req, res) => {
       const object = response.hits.hits.map(
         (product) => product._source.product
       );
-      console.log("Object:", object);
+      objReturn.data = object;
     } else {
-      console.log("No matching products found.");
+        objReturn.status = 0;
+        objReturn.msg = "Không tìm đợt sản phẩm";
+        return res.status(400).json(objReturn);
     }
-    const hits = response.hits.hits;
-    //   console.log('Search results:', hits.results._source[0]);
-    return hits.map((hit) => hit._source);
   } catch (error) {
     objReturn.status = 0;
     objReturn.msg = error.message;
     return res.status(500).json(objReturn);
   }
-  // res.status(200).json(objReturn);
+  res.status(200).json(objReturn);
 };
 
 exports.create = async (req, res, next) => {
