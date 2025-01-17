@@ -44,6 +44,8 @@ router.put('/updateRattingById/:productId', api_product.updateRattingById);
 router.put('/updateProduct/:productId', upload.single('Image'), api_product.updateById);
 router.delete('/deleteProduct/:productId', api_product.deleteById);
 
+router.get('/elasticSearch/:ProductName', api_product.elasticSearch);
+
 
 
 module.exports = router;

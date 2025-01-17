@@ -1,374 +1,430 @@
-var mProduct = require('../models/product.model');
-var mCategory = require('../models/category.model');
-const mongoose = require('mongoose');
+var mProduct = require("../models/product.model");
+var mCategory = require("../models/category.model");
+var client = require("../elasticsreach/elastic-search");
+const mongoose = require("mongoose");
+const { query } = require("express");
 
 var objReturn = {
-    status: 1,
-    msg: 'OK'
-}
+  status: 1,
+  msg: "OK",
+};
 
 exports.getAll = async (req, res, next) => {
-    console.log(1);
-    objReturn.data = null;
+  console.log(1);
+  objReturn.data = null;
 
-    let list = [];
+  let list = [];
 
-    try {
-        list = await mProduct.productModel.find()
-            .populate('CategoryID')
-        if (list.length > 0) {
-            objReturn.msg = 'tìm thành công';
-            objReturn.data = list;
-        } else {
-            objReturn.status = 0;
-            objReturn.msg = 'Không có dữ liệu phù hợp';
-            return res.status(500).json(objReturn);
-
-        }
-
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
-        return res.status(500).json(objReturn);
+  try {
+    list = await mProduct.productModel.find().populate("CategoryID");
+    if (list.length > 0) {
+      objReturn.msg = "tìm thành công";
+      objReturn.data = list;
+    } else {
+      objReturn.status = 0;
+      objReturn.msg = "Không có dữ liệu phù hợp";
+      return res.status(500).json(objReturn);
     }
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+    return res.status(500).json(objReturn);
+  }
 
-    res.json(objReturn);
-}
+  res.json(objReturn);
+};
 exports.getById = async (req, res, next) => {
-    objReturn.data = null;
+  objReturn.data = null;
 
-    try {
-        const productId = req.params.productId;
+  try {
+    const productId = req.params.productId;
 
-        if (!mongoose.Types.ObjectId.isValid(productId)) {
-            objReturn.status = 0;
-            objReturn.msg = 'productId không hợp lệ';
-            return res.status(400).json(objReturn);
-        }
-
-        const product = await mProduct.productModel.findById(productId)
-            .populate('CategoryID')
-
-        if (product) {
-            objReturn.status = 1;
-
-            objReturn.msg = 'tìm thành công';
-            objReturn.data = product;
-        } else {
-            objReturn.status = 0;
-            objReturn.msg = 'Không tìm đợt sản phẩm';
-            return res.status(400).json(objReturn);
-        }
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      objReturn.status = 0;
+      objReturn.msg = "productId không hợp lệ";
+      return res.status(400).json(objReturn);
     }
 
-    res.json(objReturn);
-}
+    const product = await mProduct.productModel
+      .findById(productId)
+      .populate("CategoryID");
+
+    if (product) {
+      objReturn.status = 1;
+
+      objReturn.msg = "tìm thành công";
+      objReturn.data = product;
+    } else {
+      objReturn.status = 0;
+      objReturn.msg = "Không tìm đợt sản phẩm";
+      return res.status(400).json(objReturn);
+    }
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+  }
+
+  res.json(objReturn);
+};
 exports.getByIdCategory = async (req, res, next) => {
-    objReturn.data = null;
+  objReturn.data = null;
 
-    try {
-        const categoryId = req.params.categoryId;
+  try {
+    const categoryId = req.params.categoryId;
 
-        if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-            objReturn.status = 0;
-            objReturn.msg = 'categoryId không hợp lệ';
-            return res.status(400).json(objReturn);
-        }
-
-        const product = await mProduct.productModel.find({ CategoryID: categoryId })
-            .populate('CategoryID')
-
-        if (product) {
-            objReturn.msg = 'tìm thành công';
-            objReturn.data = product;
-        } else {
-            objReturn.status = 0;
-            objReturn.msg = 'Không tìm đợt sản phẩm';
-            return res.status(400).json(objReturn);
-        }
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      objReturn.status = 0;
+      objReturn.msg = "categoryId không hợp lệ";
+      return res.status(400).json(objReturn);
     }
 
-    res.json(objReturn);
-}
+    const product = await mProduct.productModel
+      .find({ CategoryID: categoryId })
+      .populate("CategoryID");
+
+    if (product) {
+      objReturn.msg = "tìm thành công";
+      objReturn.data = product;
+    } else {
+      objReturn.status = 0;
+      objReturn.msg = "Không tìm đợt sản phẩm";
+      return res.status(400).json(objReturn);
+    }
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+  }
+
+  res.json(objReturn);
+};
 exports.getByName = async (req, res, next) => {
-    objReturn.data = null;
+  objReturn.data = null;
 
-    try {
-        const nameProduct = req.params.nameProduct;
+  try {
+    const nameProduct = req.params.nameProduct;
 
-        if (nameProduct) {
-            var product = await mProduct.productModel.find({ ProductName: { $regex: nameProduct, $options: 'i' } });
-
-        } else {
-            var product = await mProduct.productModel.find();
-
-        }
-        if (product) {
-            objReturn.msg = 'tìm thành công';
-            objReturn.data = product;
-        } else {
-            objReturn.status = 0;
-            objReturn.msg = 'Không tìm đợt sản phẩm';
-            return res.status(400).json(objReturn);
-        }
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
-        return res.status(400).json(objReturn);
-
+    if (nameProduct) {
+      var product = await mProduct.productModel.find({
+        ProductName: { $regex: nameProduct, $options: "i" },
+      });
+    } else {
+      var product = await mProduct.productModel.find();
     }
+    if (product) {
+      objReturn.msg = "tìm thành công";
+      objReturn.data = product;
+    } else {
+      objReturn.status = 0;
+      objReturn.msg = "Không tìm đợt sản phẩm";
+      return res.status(400).json(objReturn);
+    }
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+    return res.status(400).json(objReturn);
+  }
 
-    res.json(objReturn);
-}
+  res.json(objReturn);
+};
 exports.getByBrand = async (req, res, next) => {
-    objReturn.data = null;
+  objReturn.data = null;
 
-    try {
-        const Brand = req.params.brandProduct;
+  try {
+    const Brand = req.params.brandProduct;
 
-        if (Brand) {
-            var product = await mProduct.productModel.find({ Brand: { $regex: Brand, $options: 'i' } });
-
-        } else {
-            var product = await mProduct.productModel.find();
-
-        }
-        if (product) {
-            objReturn.msg = 'tìm thành công';
-            objReturn.data = product;
-        } else {
-            objReturn.status = 0;
-            objReturn.msg = 'Không tìm đợt sản phẩm';
-            return res.status(400).json(objReturn);
-        }
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
-        return res.status(400).json(objReturn);
-
+    if (Brand) {
+      var product = await mProduct.productModel.find({
+        Brand: { $regex: Brand, $options: "i" },
+      });
+    } else {
+      var product = await mProduct.productModel.find();
     }
+    if (product) {
+      objReturn.msg = "tìm thành công";
+      objReturn.data = product;
+    } else {
+      objReturn.status = 0;
+      objReturn.msg = "Không tìm đợt sản phẩm";
+      return res.status(400).json(objReturn);
+    }
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+    return res.status(400).json(objReturn);
+  }
 
-    res.json(objReturn);
-}
+  res.json(objReturn);
+};
 exports.getByPrice = async (req, res, next) => {
-    objReturn.data = null;
+  objReturn.data = null;
 
-    try {
-        const { min, max } = req.query;
-        if (min == null || max == null) {
-            objReturn.status = 0;
-            objReturn.msg = 'Thiếu tham số min hoặc max';
-            return res.json(objReturn);
-        }
-        const minDiem = parseFloat(min);
-        const maxDiem = parseFloat(max);
-
-        if (isNaN(minDiem) || isNaN(maxDiem)) {
-            objReturn.status = 0;
-            objReturn.msg = 'Tham số min và max phải là số';
-            return res.json(objReturn);
-        }
-
-
-        const results = await mProduct.productModel.find({ Price: { $gte: minDiem, $lte: maxDiem } });
-        if (results.length > 0) {
-            objReturn.msg = 'Tìm thấy các kết quả phù hợp';
-            objReturn.data = results;
-        } else {
-            objReturn.status = 0;
-            objReturn.msg = 'Không tìm thấy kết quả nào phù hợp';
-        }
-
-
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
-        return res.status(400).json(objReturn);
-
+  try {
+    const { min, max } = req.query;
+    if (min == null || max == null) {
+      objReturn.status = 0;
+      objReturn.msg = "Thiếu tham số min hoặc max";
+      return res.json(objReturn);
     }
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
-    res.set('Surrogate-Control', 'no-store');
+    const minDiem = parseFloat(min);
+    const maxDiem = parseFloat(max);
 
-    res.status(200).json(objReturn);
-}
+    if (isNaN(minDiem) || isNaN(maxDiem)) {
+      objReturn.status = 0;
+      objReturn.msg = "Tham số min và max phải là số";
+      return res.json(objReturn);
+    }
 
+    const results = await mProduct.productModel.find({
+      Price: { $gte: minDiem, $lte: maxDiem },
+    });
+    if (results.length > 0) {
+      objReturn.msg = "Tìm thấy các kết quả phù hợp";
+      objReturn.data = results;
+    } else {
+      objReturn.status = 0;
+      objReturn.msg = "Không tìm thấy kết quả nào phù hợp";
+    }
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+    return res.status(400).json(objReturn);
+  }
+  res.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  res.set("Surrogate-Control", "no-store");
 
+  res.status(200).json(objReturn);
+};
+
+exports.elasticSearch = async (req, res) => {
+  objReturn.data = null;
+
+  const { ProductName } = req.params;
+  try {
+    const response = await client.search({
+      index: "food",
+      query: {
+        wildcard: {
+          "product.ProductName.keyword": {
+            value: `*${ProductName}*`, // Tìm kiếm chứa "partialName"
+            case_insensitive: true,  // Không phân biệt hoa/thường
+          },
+        },
+      },
+    });
+
+    if (response.hits && response.hits.hits.length > 0) {
+      const object = response.hits.hits.map(
+        (product) => product._source.product
+      );
+      console.log("Object:", object);
+    } else {
+      console.log("No matching products found.");
+    }
+    const hits = response.hits.hits;
+    //   console.log('Search results:', hits.results._source[0]);
+    return hits.map((hit) => hit._source);
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+    return res.status(500).json(objReturn);
+  }
+  // res.status(200).json(objReturn);
+};
 
 exports.create = async (req, res, next) => {
-    objReturn.data = null;
+  objReturn.data = null;
 
-    const { CategoryID, Description, Price, ProductName, StockQuantity,Brand,Ratting} = req.body;
-    try {
-        if (!CategoryID || !Description || !Price || !ProductName || !StockQuantity || !Brand) {
-            objReturn.status = 0;
-            objReturn.msg = 'hãy nhập đủ';
-            return res.status(400).json(objReturn);
-
-        }
-        const product = new mProduct.productModel({
-            CategoryID,
-            Description,
-            Price,
-            Brand,
-            ProductName,
-            Image: req.file.path,
-            StockQuantity,
-            Ratting : '5',
-        });
-        if (req.file && req.file.path) {
-            product.Image = req.file.path;
-        }
-
-
-        const savedProduct = await product.save();
-        objReturn.msg = 'tạo thành công';
-        objReturn.data = savedProduct;
-
-
-
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
-        return res.status(500).json(objReturn);
+  const {
+    CategoryID,
+    Description,
+    Price,
+    ProductName,
+    StockQuantity,
+    Brand,
+    Ratting,
+  } = req.body;
+  try {
+    if (
+      !CategoryID ||
+      !Description ||
+      !Price ||
+      !ProductName ||
+      !StockQuantity ||
+      !Brand
+    ) {
+      objReturn.status = 0;
+      objReturn.msg = "hãy nhập đủ";
+      return res.status(400).json(objReturn);
     }
-    res.status(200).json(objReturn);
+    const product = new mProduct.productModel({
+      CategoryID,
+      Description,
+      Price,
+      Brand,
+      ProductName,
+      Image: req.file.path,
+      StockQuantity,
+      Ratting: "5",
+    });
+    if (req.file && req.file.path) {
+      product.Image = req.file.path;
+    }
 
+    client.index(
+      {
+        index: "food",
+        id: product._id.toString(),
+        body: { product },
+      },
+      (err, result) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log(result, "resulttttt");
+        }
+      }
+    );
+
+    const savedProduct = await product.save();
+    objReturn.msg = "tạo thành công";
+    objReturn.data = savedProduct;
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+    return res.status(500).json(objReturn);
+  }
+  res.status(200).json(objReturn);
 };
 
 exports.getRattingById = async (req, res, next) => {
-    objReturn.data = null;
+  objReturn.data = null;
 
-    const { productId } = req.params;
-    const { Ratting } = req.body;
+  const { productId } = req.params;
+  const { Ratting } = req.body;
 
-    try {
-        const productId = req.params.productId;
+  try {
+    const productId = req.params.productId;
 
+    const product = await mProduct.productModel.findById(productId);
 
-        const product = await mProduct.productModel.findById(productId)
-
-        if (product) {
-            objReturn.status = 1;
-            objReturn.msg = 'tìm thành công';
-            objReturn.data = product.Ratting;
-        } else {
-            objReturn.status = 0;
-            objReturn.msg = 'Không tìm đợt sản phẩm';
-            return res.status(400).json(objReturn);
-        }
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
+    if (product) {
+      objReturn.status = 1;
+      objReturn.msg = "tìm thành công";
+      objReturn.data = product.Ratting;
+    } else {
+      objReturn.status = 0;
+      objReturn.msg = "Không tìm đợt sản phẩm";
+      return res.status(400).json(objReturn);
     }
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+  }
 
-    res.json(objReturn);
-}
-
-exports.updateById = async (req, res, next) => {
-    objReturn.data = null;
-
-    const { productId } = req.params;
-    const { CategoryID, Description, Price, ProductName, StockQuantity,Brand } = req.body;
-
-    try {
-        const updatedProduct = await mProduct.productModel.findByIdAndUpdate(
-            productId,
-            {
-                CategoryID,
-                Description,
-                Price,
-                Brand,
-                ProductName,
-                StockQuantity
-            },
-            { new: true }
-        );
-
-        if (req.file && req.file.path) {
-            updatedProduct.Image = req.file.path;
-        }
-        if (!updatedProduct) {
-            objReturn.status = 0;
-            objReturn.msg = 'Product not found';
-            return res.status(404).json(objReturn);
-        }
-
-        await updatedProduct.save();
-
-        objReturn.msg = 'Update successful';
-        objReturn.data = updatedProduct;
-
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
-        return res.status(500).json(objReturn);
-    }
-
-    res.json(objReturn);
+  res.json(objReturn);
 };
 
+exports.updateById = async (req, res, next) => {
+  objReturn.data = null;
+
+  const { productId } = req.params;
+  const { CategoryID, Description, Price, ProductName, StockQuantity, Brand } =
+    req.body;
+
+  try {
+    const updatedProduct = await mProduct.productModel.findByIdAndUpdate(
+      productId,
+      {
+        CategoryID,
+        Description,
+        Price,
+        Brand,
+        ProductName,
+        StockQuantity,
+      },
+      { new: true }
+    );
+
+    if (req.file && req.file.path) {
+      updatedProduct.Image = req.file.path;
+    }
+    if (!updatedProduct) {
+      objReturn.status = 0;
+      objReturn.msg = "Product not found";
+      return res.status(404).json(objReturn);
+    }
+
+    await updatedProduct.save();
+
+    objReturn.msg = "Update successful";
+    objReturn.data = updatedProduct;
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+    return res.status(500).json(objReturn);
+  }
+
+  res.json(objReturn);
+};
 
 exports.updateRattingById = async (req, res, next) => {
-    objReturn.data = null;
+  objReturn.data = null;
 
-    const { productId } = req.params;
-    const { Ratting } = req.body;
-    console.log(req.body);
-    try {
-        const updatedProduct = await mProduct.productModel.findByIdAndUpdate(
-            productId,
-            {
-                Ratting
-            },
-            { new: true }
-        );
-        if (!updatedProduct) {
-            objReturn.status = 0;
-            objReturn.msg = 'Product not found';
-            return res.status(404).json(objReturn);
-        }
-        await updatedProduct.save();
-
-        objReturn.msg = 'Update successful';
-        objReturn.data = updatedProduct;
-
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
-        return res.status(500).json(objReturn);
+  const { productId } = req.params;
+  const { Ratting } = req.body;
+  console.log(req.body);
+  try {
+    const updatedProduct = await mProduct.productModel.findByIdAndUpdate(
+      productId,
+      {
+        Ratting,
+      },
+      { new: true }
+    );
+    if (!updatedProduct) {
+      objReturn.status = 0;
+      objReturn.msg = "Product not found";
+      return res.status(404).json(objReturn);
     }
+    await updatedProduct.save();
 
-    res.json(objReturn);
-}
+    objReturn.msg = "Update successful";
+    objReturn.data = updatedProduct;
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+    return res.status(500).json(objReturn);
+  }
+
+  res.json(objReturn);
+};
 
 exports.deleteById = async (req, res, next) => {
-    const { productId } = req.params;
+  const { productId } = req.params;
 
-    try {
-        const deletedProduct = await mProduct.productModel.findByIdAndDelete(productId);
+  try {
+    const deletedProduct = await mProduct.productModel.findByIdAndDelete(
+      productId
+    );
 
-        if (!deletedProduct) {
-            objReturn.status = 0;
-            objReturn.msg = 'Product not found';
-            return res.status(404).json(objReturn);
-        }
-
-        objReturn.msg = 'Delete successful';
-        objReturn.data = deletedProduct;
-
-    } catch (error) {
-        objReturn.status = 0;
-        objReturn.msg = error.message;
-        return res.status(500).json(objReturn);
+    if (!deletedProduct) {
+      objReturn.status = 0;
+      objReturn.msg = "Product not found";
+      return res.status(404).json(objReturn);
     }
 
-    res.json(objReturn);
+    objReturn.msg = "Delete successful";
+    objReturn.data = deletedProduct;
+  } catch (error) {
+    objReturn.status = 0;
+    objReturn.msg = error.message;
+    return res.status(500).json(objReturn);
+  }
+
+  res.json(objReturn);
 };
