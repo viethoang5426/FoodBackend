@@ -37,6 +37,9 @@ router.get('/search/name/', api_product.getAll);
 router.get('/search/brand/', api_product.getAll);
 router.get('/:productId', api_product.getById);
 router.get('/category/:categoryId', api_product.getByIdCategory);
+router.get('/getRattingById/:productId', api_product.getRattingById);
+
+router.put('/updateRattingById/:productId', api_product.updateRattingById);
 
 router.put('/updateProduct/:productId', upload.single('Image'), api_product.updateById);
 router.delete('/deleteProduct/:productId', api_product.deleteById);

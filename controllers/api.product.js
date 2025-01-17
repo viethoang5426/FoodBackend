@@ -201,10 +201,11 @@ exports.getByPrice = async (req, res, next) => {
 }
 
 
+
 exports.create = async (req, res, next) => {
     objReturn.data = null;
 
-    const { CategoryID, Description, Price, ProductName, StockQuantity,Brand } = req.body;
+    const { CategoryID, Description, Price, ProductName, StockQuantity,Brand,Ratting} = req.body;
     try {
         if (!CategoryID || !Description || !Price || !ProductName || !StockQuantity || !Brand) {
             objReturn.status = 0;
@@ -219,7 +220,8 @@ exports.create = async (req, res, next) => {
             Brand,
             ProductName,
             Image: req.file.path,
-            StockQuantity
+            StockQuantity,
+            Ratting : '5',
         });
         if (req.file && req.file.path) {
             product.Image = req.file.path;
@@ -240,6 +242,36 @@ exports.create = async (req, res, next) => {
     res.status(200).json(objReturn);
 
 };
+
+exports.getRattingById = async (req, res, next) => {
+    objReturn.data = null;
+
+    const { productId } = req.params;
+    const { Ratting } = req.body;
+
+    try {
+        const productId = req.params.productId;
+
+
+        const product = await mProduct.productModel.findById(productId)
+
+        if (product) {
+            objReturn.status = 1;
+            objReturn.msg = 'tìm thành công';
+            objReturn.data = product.Ratting;
+        } else {
+            objReturn.status = 0;
+            objReturn.msg = 'Không tìm đợt sản phẩm';
+            return res.status(400).json(objReturn);
+        }
+    } catch (error) {
+        objReturn.status = 0;
+        objReturn.msg = error.message;
+    }
+
+    res.json(objReturn);
+}
+
 exports.updateById = async (req, res, next) => {
     objReturn.data = null;
 
@@ -282,6 +314,43 @@ exports.updateById = async (req, res, next) => {
 
     res.json(objReturn);
 };
+
+
+exports.updateRattingById = async (req, res, next) => {
+    objReturn.data = null;
+
+    const { productId } = req.params;
+    const { Ratting } = req.body;
+    console.log(req.body);
+    try {
+        const updatedProduct = await mProduct.productModel.findByIdAndUpdate(
+            productId,
+            {
+                Ratting
+            },
+            { new: true }
+        );
+
+
+        if (!updatedProduct) {
+            objReturn.status = 0;
+            objReturn.msg = 'Product not found';
+            return res.status(404).json(objReturn);
+        }
+
+        await updatedProduct.save();
+
+        objReturn.msg = 'Update successful';
+        objReturn.data = updatedProduct;
+
+    } catch (error) {
+        objReturn.status = 0;
+        objReturn.msg = error.message;
+        return res.status(500).json(objReturn);
+    }
+
+    res.json(objReturn);
+}
 
 exports.deleteById = async (req, res, next) => {
     const { productId } = req.params;
