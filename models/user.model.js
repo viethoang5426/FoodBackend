@@ -26,7 +26,6 @@ userSchema.methods.generateAuthToken = async function () {
     const user = this
     // console.log(user)
     const token = jwt.sign({ _id: user._id, Email: user.Email }, privateKEY)
-    // user.tokens = user.tokens.concat({token}) // code này dành cho nhiều token, ở demo này dùng 1 token
     user.token = token;
     await user.save()
     return token

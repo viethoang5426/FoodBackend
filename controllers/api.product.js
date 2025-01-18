@@ -205,17 +205,46 @@ exports.elasticSearch = async (req, res) => {
 
   const { ProductName } = req.params;
   try {
+    // const response = await client.search({
+    //   index: "food",
+    //   query: {
+    //     wildcard: {
+    //       "product.ProductName.keyword": {
+    //         value: `*${ProductName}*`, 
+    //         case_insensitive: true,
+    //         fuzziness: 2  
+    //       },
+    //     },
+    //   },
+    // });
+
+
     const response = await client.search({
       index: "food",
       query: {
-        wildcard: {
-          "product.ProductName.keyword": {
-            value: `*${ProductName}*`, // Tìm kiếm chứa "partialName"
-            case_insensitive: true,  // Không phân biệt hoa/thường
-          },
+        bool: {
+          should: [
+            {
+              wildcard: {
+                "product.ProductName.keyword": {
+                  value: `*${ProductName}*`,
+                  case_insensitive: true,
+                },
+              },
+            },
+            {
+              fuzzy: {
+                "product.ProductName": {
+                  value: ProductName,
+                  fuzziness: 2,
+                },
+              },
+            },
+          ],
         },
       },
     });
+    
 
     if (response.hits && response.hits.hits.length > 0) {
       const object = response.hits.hits.map(
